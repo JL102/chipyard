@@ -10,6 +10,7 @@ import constellation.topology._
 import constellation.noc._
 import constellation.soc.{GlobalNoCParams}
 
+import messagequeue._
 import scala.collection.immutable.ListMap
 
 /*
@@ -213,5 +214,26 @@ class SbusRingNoCConfig extends Config(
   )) ++
   new freechips.rocketchip.subsystem.WithNBigCores(8) ++
   new freechips.rocketchip.subsystem.WithNBanks(4) ++
+  new chipyard.config.AbstractConfig
+)
+
+class AMMConfig1 extends Config(
+  new WithMessageQueue(3) ++
+  new constellation.soc.WithSbusNoC(constellation.protocol.TLNoCParams(
+    constellation.protocol.DiplomaticNetworkNodeMapping(
+      inNodeMapping = ListMap(
+        "Core 0" -> 0,
+        "Core 1" -> 1,
+        "serial-tl" -> 3),
+      outNodeMapping = ListMap(
+        "system[0]" -> 2,
+        "pbus" -> 3)), // TSI is on the pbus, so serial-tl and pbus should be on the same node
+    NoCParams(
+      topology        = UnidirectionalTorus1D(4),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(10) { UserVirtualChannelParams(4) }),
+      routingRelation = NonblockingVirtualSubnetworksRouting(UnidirectionalTorus1DDatelineRouting(), 5, 2))
+  )) ++
+  new freechips.rocketchip.subsystem.WithNBigCores(2) ++
+  new freechips.rocketchip.subsystem.WithNBanks(1) ++
   new chipyard.config.AbstractConfig
 )

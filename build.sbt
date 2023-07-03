@@ -120,6 +120,10 @@ lazy val rocketchip = freshProject("rocketchip", rocketChipDir)
   )
 lazy val rocketLibDeps = (rocketchip / Keys.libraryDependencies)
 
+// Message Queue package
+lazy val messagequeue = (project in file("generators/message-queue"))
+  .settings(commonSettings).dependsOn(rocketchip, constellation)
+  .settings(libraryDependencies ++= rocketLibDeps.value)
 
 // -- Chipyard-managed External Projects --
 
@@ -137,6 +141,7 @@ lazy val chipyard = (project in file("generators/chipyard"))
     sha3, // On separate line to allow for cleaner tutorial-setup patches
     dsptools, `rocket-dsp-utils`,
     gemmini, icenet, tracegen, cva6, nvdla, sodor, ibex, fft_generator,
+    messagequeue,
     constellation, mempress)
   .settings(libraryDependencies ++= rocketLibDeps.value)
   .settings(
@@ -283,6 +288,3 @@ lazy val fpga_platforms = (project in file("./fpga"))
   .dependsOn(chipyard, fpga_shells)
   .settings(commonSettings)
 
-lazy val message_queue = (project in file("generators/message-queue"))
-  .settings(commonSettings).dependsOn(rocketchip, constellation)
-  .settings(libraryDependencies ++= rocketLibDeps.value)
