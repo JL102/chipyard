@@ -120,10 +120,6 @@ lazy val rocketchip = freshProject("rocketchip", rocketChipDir)
   )
 lazy val rocketLibDeps = (rocketchip / Keys.libraryDependencies)
 
-// Message Queue package
-lazy val messagequeue = (project in file("generators/message-queue"))
-  .settings(commonSettings).dependsOn(rocketchip, constellation)
-  .settings(libraryDependencies ++= rocketLibDeps.value)
 
 // -- Chipyard-managed External Projects --
 
@@ -288,3 +284,7 @@ lazy val fpga_platforms = (project in file("./fpga"))
   .dependsOn(chipyard, fpga_shells)
   .settings(commonSettings)
 
+// Message Queue package
+lazy val messagequeue = (project in file("generators/message-queue"))
+  .settings(commonSettings).dependsOn(rocketchip, constellation)
+  .settings(libraryDependencies ++= rocketLibDeps.value)
