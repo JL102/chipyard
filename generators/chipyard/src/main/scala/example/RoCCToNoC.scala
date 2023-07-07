@@ -2,12 +2,12 @@ package chipyard.example
 
 import chisel3._
 import chisel3.util._
-import freechips.rocketchip.config._
 import freechips.rocketchip.diplomacy._
 import freechips.rocketchip.rocket._
 import freechips.rocketchip.tilelink._
 import freechips.rocketchip.tile._
 import freechips.rocketchip.subsystem._
+import org.chipsalliance.cde.config._
 import constellation.protocol.{ProtocolParams, ProtocolNoC, ProtocolNoCParams}
 import constellation.noc.{NoCTerminalIO, NoCParams}
 import constellation.channel.{FlowParams}
