@@ -24,5 +24,6 @@ first-clone-setup-fast-log
 project/.bloop/
 project/metals.sbt
 project/project/
+.scalafmt.conf
 .ivy2
 .sbt
