@@ -237,3 +237,9 @@ class AMMConfig1 extends Config(
   new freechips.rocketchip.subsystem.WithNBanks(1) ++
   new chipyard.config.AbstractConfig
 )
+
+class AMMConfigSimple extends Config(
+  new WithMessageQueue(3) ++ 
+  new freechips.rocketchip.subsystem.WithNBigCores(1) ++
+  new chipyard.config.AbstractConfig
+  )
