@@ -290,5 +290,5 @@ lazy val messagequeue = (project in file("generators/message-queue"))
     libraryDependencies += "edu.berkeley.cs" %% "chiseltest" % "0.5.4" % "test"
   )
   .settings(commonSettings)
-  .dependsOn(rocketchip, constellation)
+  .dependsOn(rocketchip, constellation, boom)
   .settings(libraryDependencies ++= rocketLibDeps.value)

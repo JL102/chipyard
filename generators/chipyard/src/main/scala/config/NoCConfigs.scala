@@ -242,7 +242,29 @@ class AMMConfigSimple extends Config(
   new WithMessageQueue(3) ++ 
   new freechips.rocketchip.subsystem.WithNBigCores(1) ++
   new chipyard.config.AbstractConfig
-  )
+)
+
+class MessageQueueNoCConfig extends Config(
+  new messagequeue.WithMessageQueueNoC(messagequeue.MQNoCProtocolParams(
+    hartMappings = ListMap( // naively map hartIds to the same nodeId
+      0 -> 0,
+      1 -> 1,
+      2 -> 2,
+      3 -> 3,
+      4 -> 4,
+      5 -> 5,
+      6 -> 6,
+      7 -> 7),
+    nocParams = NoCParams(
+      topology = Mesh2D(2, 4),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
+      routingRelation = Mesh2DDimensionOrderedRouting()
+    )
+  )) ++
+  new messagequeue.WithMessageQueue ++
+  new freechips.rocketchip.subsystem.WithNBigCores(8) ++
+  new chipyard.config.AbstractConfig
+)
 class RoCCOverNoCConfig extends Config(
   new chipyard.example.WithRoNNoC(chipyard.example.RoNNoCProtocolParams(
     hartMappings = ListMap( // naively map hartIds to the same nodeId
