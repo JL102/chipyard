@@ -217,29 +217,17 @@ class SbusRingNoCConfig extends Config(
   new chipyard.config.AbstractConfig
 )
 
-class AMMConfig1 extends Config(
-  new WithMessageQueue(3) ++
-  new constellation.soc.WithSbusNoC(constellation.protocol.TLNoCParams(
-    constellation.protocol.DiplomaticNetworkNodeMapping(
-      inNodeMapping = ListMap(
-        "Core 0" -> 0,
-        "Core 1" -> 1,
-        "serial-tl" -> 3),
-      outNodeMapping = ListMap(
-        "system[0]" -> 2,
-        "pbus" -> 3)), // TSI is on the pbus, so serial-tl and pbus should be on the same node
-    NoCParams(
-      topology        = UnidirectionalTorus1D(4),
-      channelParamGen = (a, b) => UserChannelParams(Seq.fill(10) { UserVirtualChannelParams(4) }),
-      routingRelation = NonblockingVirtualSubnetworksRouting(UnidirectionalTorus1DDatelineRouting(), 5, 2))
+class MessageQueueNoCConfigMinimal extends Config(
+  new messagequeue.WithMessageQueueNoC(messagequeue.MQNoCProtocolParams(
+    hartMappings = ListMap( // naively map hartIds to the same nodeId
+      0 -> 0),
+    nocParams = NoCParams(
+      topology = Mesh2D(1, 1),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
+      routingRelation = Mesh2DDimensionOrderedRouting()
+    )
   )) ++
-  new freechips.rocketchip.subsystem.WithNBigCores(2) ++
-  new freechips.rocketchip.subsystem.WithNBanks(1) ++
-  new chipyard.config.AbstractConfig
-)
-
-class AMMConfigSimple extends Config(
-  new WithMessageQueue(3) ++ 
+  new messagequeue.WithMessageQueue ++
   new freechips.rocketchip.subsystem.WithNBigCores(1) ++
   new chipyard.config.AbstractConfig
 )
@@ -250,19 +238,15 @@ class MessageQueueNoCConfig extends Config(
       0 -> 0,
       1 -> 1,
       2 -> 2,
-      3 -> 3,
-      4 -> 4,
-      5 -> 5,
-      6 -> 6,
-      7 -> 7),
+      3 -> 3),
     nocParams = NoCParams(
-      topology = Mesh2D(2, 4),
+      topology = Mesh2D(2, 2),
       channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
       routingRelation = Mesh2DDimensionOrderedRouting()
     )
   )) ++
   new messagequeue.WithMessageQueue ++
-  new freechips.rocketchip.subsystem.WithNBigCores(8) ++
+  new freechips.rocketchip.subsystem.WithNBigCores(4) ++
   new chipyard.config.AbstractConfig
 )
 class RoCCOverNoCConfig extends Config(
