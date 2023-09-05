@@ -122,7 +122,7 @@
 	path = tools/cde
 	url = https://github.com/chipsalliance/cde.git
 [submodule "generators/message-queue"]
-	path = generators/message-queue
+	path = generators/sage
 	url = https://github.com/JL102/lbl-message-queue-module.git
 [submodule "software/embench/embench-iot"]
 	path = software/embench/embench-iot

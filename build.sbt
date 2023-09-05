@@ -150,7 +150,7 @@ lazy val chipyard = (project in file("generators/chipyard"))
     sha3, // On separate line to allow for cleaner tutorial-setup patches
     dsptools, rocket_dsp_utils,
     gemmini, icenet, tracegen, cva6, nvdla, sodor, ibex, fft_generator,
-    messagequeue,
+    sage,
     constellation, mempress, barf, shuttle)
   .settings(libraryDependencies ++= rocketLibDeps.value)
   .settings(
@@ -304,7 +304,7 @@ lazy val fpga_platforms = (project in file("./fpga"))
   .settings(commonSettings)
 
 // Message Queue package
-lazy val messagequeue = (project in file("generators/message-queue"))
+lazy val sage = (project in file("generators/sage"))
   .settings(
     libraryDependencies += "edu.berkeley.cs" %% "chiseltest" % "0.5.4" % "test"
   )
