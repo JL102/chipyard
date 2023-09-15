@@ -306,7 +306,7 @@ lazy val fpga_platforms = (project in file("./fpga"))
 // Message Queue package
 lazy val sage = (project in file("generators/sage"))
   .settings(
-    libraryDependencies += "edu.berkeley.cs" %% "chiseltest" % "0.5.4" % "test"
+    libraryDependencies += "edu.berkeley.cs" %% "chiseltest" % "0.6.2" % "test"
   )
   .settings(commonSettings)
   .dependsOn(rocketchip, constellation, boom, cde)
