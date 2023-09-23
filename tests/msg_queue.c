@@ -56,15 +56,33 @@ static inline unsigned long qWaitAny() {
   return result;
 }
 
+static inline unsigned long qWait(unsigned long source) {
+  unsigned long result; // data
+  ROCC_INSTRUCTION_DS(CUSTOM_INSTR, result, source, FUNCT_QWAIT);
+  return result;
+}
+
 static inline unsigned long qGetAny() {
   unsigned long result; // data
   ROCC_INSTRUCTION_D(CUSTOM_INSTR, result, FUNCT_QGET);
   return result;
 }
 
+static inline unsigned long qGet(unsigned long source) {
+  unsigned long result; // data
+  ROCC_INSTRUCTION_DS(CUSTOM_INSTR, result, source, FUNCT_QGET);
+  return result;
+}
+
 static inline unsigned int qPollAny() {
   unsigned int result; // 0 or 1
   ROCC_INSTRUCTION_D(CUSTOM_INSTR, result, FUNCT_QPOLL);
+  return result;
+}
+
+static inline unsigned int qPoll(unsigned long source) {
+  unsigned int result; // 0 or 1
+  ROCC_INSTRUCTION_DS(CUSTOM_INSTR, result, FUNCT_QPOLL);
   return result;
 }
 
