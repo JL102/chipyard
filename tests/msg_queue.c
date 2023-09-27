@@ -82,7 +82,7 @@ static inline unsigned int qPollAny() {
 
 static inline unsigned int qPoll(unsigned long source) {
   unsigned int result; // 0 or 1
-  ROCC_INSTRUCTION_DS(CUSTOM_INSTR, result, FUNCT_QPOLL);
+  ROCC_INSTRUCTION_DS(CUSTOM_INSTR, source, result, FUNCT_QPOLL);
   return result;
 }
 

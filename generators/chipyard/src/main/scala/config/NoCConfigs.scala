@@ -10,7 +10,7 @@ import constellation.topology._
 import constellation.noc._
 import constellation.soc.{GlobalNoCParams}
 
-// import messagequeue._
+import sage._
 import scala.collection.immutable.ListMap
 
 /*
@@ -217,57 +217,57 @@ class SbusRingNoCConfig extends Config(
   new chipyard.config.AbstractConfig
 )
 
-// class MessageQueueNoCConfigMinimal extends Config(
-//   new messagequeue.WithMessageQueueNoC(messagequeue.MQNoCProtocolParams(
-//     hartMappings = ListMap( // naively map hartIds to the same nodeId
-//       0 -> 0),
-//     nocParams = NoCParams(
-//       topology = Mesh2D(1, 1),
-//       channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
-//       routingRelation = Mesh2DDimensionOrderedRouting()
-//     )
-//   )) ++
-//   new messagequeue.WithMessageQueue ++
-//   new freechips.rocketchip.subsystem.WithNBigCores(1) ++
-//   new chipyard.config.AbstractConfig
-// )
-//
-// class MessageQueueNoCConfig1DTorus extends Config(
-//   new messagequeue.WithMessageQueueNoC(messagequeue.MQNoCProtocolParams(
-//     hartMappings = ListMap( // naively map hartIds to the same nodeId
-//       0 -> 0,
-//       1 -> 1,
-//       2 -> 2,
-//       3 -> 3),
-//     nocParams = NoCParams(
-//       topology = UnidirectionalTorus1D(4),
-//       channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
-//       routingRelation = UnidirectionalTorus1DDatelineRouting()
-//     )
-//   )) ++
-//   new messagequeue.WithMessageQueue ++
-//   new freechips.rocketchip.subsystem.WithNBigCores(4) ++
-//   new chipyard.config.AbstractConfig
-// )
-//
-// class MessageQueueNoCConfig extends Config(
-//   new messagequeue.WithMessageQueueNoC(messagequeue.MQNoCProtocolParams(
-//     hartMappings = ListMap( // naively map hartIds to the same nodeId
-//       0 -> 0,
-//       1 -> 1,
-//       2 -> 2,
-//       3 -> 3),
-//     nocParams = NoCParams(
-//       topology = Mesh2D(2, 2),
-//       channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
-//       routingRelation = Mesh2DDimensionOrderedRouting()
-//     )
-//   )) ++
-//   new messagequeue.WithMessageQueue ++
-//   new freechips.rocketchip.subsystem.WithNBigCores(4) ++
-//   new chipyard.config.AbstractConfig
-// )
-//
+class SageNoCConfigMinimal extends Config(
+  new sage.WithSAGENoC(sage.SAGENoCProtocolParams(
+    hartMappings = ListMap( // naively map hartIds to the same nodeId
+      0 -> 0),
+    nocParams = NoCParams(
+      topology = Mesh2D(1, 1),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
+      routingRelation = Mesh2DDimensionOrderedRouting()
+    )
+  )) ++
+  new sage.WithSAGE ++
+  new freechips.rocketchip.subsystem.WithNBigCores(1) ++
+  new chipyard.config.AbstractConfig
+)
+
+class SageNoCConfig1DTorus extends Config(
+  new sage.WithSAGENoC(sage.SAGENoCProtocolParams(
+    hartMappings = ListMap( // naively map hartIds to the same nodeId
+      0 -> 0,
+      1 -> 1,
+      2 -> 2,
+      3 -> 3),
+    nocParams = NoCParams(
+      topology = UnidirectionalTorus1D(4),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
+      routingRelation = UnidirectionalTorus1DDatelineRouting()
+    )
+  )) ++
+  new sage.WithSAGE ++
+  new freechips.rocketchip.subsystem.WithNBigCores(4) ++
+  new chipyard.config.AbstractConfig
+)
+
+class SageNoCConfig extends Config(
+  new sage.WithSAGENoC(sage.SAGENoCProtocolParams(
+    hartMappings = ListMap( // naively map hartIds to the same nodeId
+      0 -> 0,
+      1 -> 1,
+      2 -> 2,
+      3 -> 3),
+    nocParams = NoCParams(
+      topology = Mesh2D(2, 2),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
+      routingRelation = Mesh2DDimensionOrderedRouting()
+    )
+  )) ++
+  new sage.WithSAGE ++
+  new freechips.rocketchip.subsystem.WithNBigCores(4) ++
+  new chipyard.config.AbstractConfig
+)
+
 class RoCCOverNoCConfig extends Config(
   new chipyard.example.WithRoNNoC(chipyard.example.RoNNoCProtocolParams(
     hartMappings = ListMap( // naively map hartIds to the same nodeId
