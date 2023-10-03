@@ -90,7 +90,7 @@ static inline unsigned int qPoll(unsigned long source) {
 // in the funct7, and use macros like ROCC_INSTRUCTION_R_I_I instead of ROCC_INSTRUCTION_D_S_S
 
 #define NUM_CORES 4
-#define DIRECTION 0
+#define DIRECTION 1
 
 int getNextNeighbor(unsigned long hartid) {
   // clockwise - increase
@@ -128,11 +128,11 @@ int __main(void) {
   while (1) {
     sourceID = qWaitAny();
     // Sanity check - Make sure the message came from the prev neighbor
-    // if (sourceID != myPrevNeighbor) {
-    //   // Create a recognizable exit code
-    //   return 100 * sourceID + 10 * myPrevNeighbor + hartid;
-    // }
-    ball = qGetAny();
+    if (sourceID != myPrevNeighbor) {
+      // Create a recognizable exit code
+      return 100 * sourceID + 10 * myPrevNeighbor + hartid;
+    }
+    ball = qGet(sourceID);
     
     qPut(myNextNeighbor, ball + 1);
   }
@@ -154,10 +154,10 @@ int main(void) {
   for (int i = 0; i < 100; i++) {
     sourceID = qWaitAny();
     // Sanity check - different exit code than the __main loop
-    // if (sourceID != myPrevNeighbor) {
-    //   return 100 * sourceID + 10 * myPrevNeighbor;
-    // }
-    ball = qGetAny();
+    if (sourceID != myPrevNeighbor) {
+      return 100 * sourceID + 10 * myPrevNeighbor;
+    }
+    ball = qGet(sourceID);
     printf("Received ball value %d from core %d\n", ball, sourceID);
     qPut(myNextNeighbor, ball + 1);
   }
