@@ -4,7 +4,8 @@ import java.io.File
 
 import chisel3._
 import chisel3.util.{log2Up}
-import freechips.rocketchip.config.{Parameters, Config}
+// import org.chipsalliance.cde.config.{Parameters, Config}
+import freechips.rocketchip.config._
 import freechips.rocketchip.groundtest.TraceGenParams
 import freechips.rocketchip.tile._
 import freechips.rocketchip.tilelink._
@@ -17,11 +18,22 @@ import testchipip.{BlockDeviceKey, BlockDeviceConfig, TracePortKey, TracePortPar
 import sifive.blocks.devices.uart.{PeripheryUARTKey, UARTParams}
 import scala.math.{min, max}
 
+import boom.common._
 import chipyard.clocking.{ChipyardPRCIControlKey}
 import icenet._
 
 import firesim.bridges._
 import firesim.configs._
+
+import constellation.channel._
+import constellation.routing._
+import constellation.topology._
+import constellation.noc._
+import constellation.soc.{GlobalNoCParams}
+
+import messagequeue._
+
+import scala.collection.immutable.ListMap
 
 class WithBootROM extends Config((site, here, up) => {
   case BootROMLocated(x) => {
@@ -175,7 +187,7 @@ class WithFireSimHighPerfConfigTweaks extends Config(
 * determine which driver to build.
  *******************************************************************************/
 
-//*****************************************************************
+//***************************************************************** 
 // Rocket configs, base off chipyard's RocketConfig
 //*****************************************************************
 // DOC include start: firesimconfig
@@ -306,3 +318,113 @@ class FireSimLeanGemminiRocketMMIOOnlyConfig extends Config(
   new WithDefaultMemModel ++
   new WithFireSimConfigTweaks ++
   new chipyard.LeanGemminiRocketConfig)
+
+class FireSimMessageQueueConfig4CoreMesh extends Config(
+  new WithDefaultMMIOOnlyFireSimBridges ++
+  new WithFireSimConfigTweaks ++
+  new messagequeue.WithMessageQueueNoC(messagequeue.MQNoCProtocolParams(
+    hartMappings = ListMap( // naively map hartIds to the same nodeId
+      0 -> 0,
+      1 -> 1,
+      2 -> 2,
+      3 -> 3),
+    nocParams = NoCParams(
+      topology = Mesh2D(2, 2),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
+      routingRelation = Mesh2DDimensionOrderedRouting()
+    )
+  )) ++
+  new messagequeue.WithMessageQueue ++
+  new freechips.rocketchip.subsystem.WithNBigCores(4) ++
+  new chipyard.config.AbstractConfig
+  )
+
+class ConstellationTestConfig extends Config(
+ new WithDefaultMMIOOnlyFireSimBridges ++
+ new WithFireSimConfigTweaks ++
+ new chipyard.SbusRingNoCConfig
+  // new constellation.soc.WithSbusNoC(constellation.protocol.TLNoCParams(
+  //   constellation.protocol.DiplomaticNetworkNodeMapping(
+  //     inNodeMapping = ListMap(
+  //       "Core 0" -> 0,
+  //       "Core 1" -> 1,
+  //       "serial-tl" -> 3),
+  //     outNodeMapping = ListMap(
+  //       "system[0]" -> 2,
+  //       "pbus" -> 3)), // TSI is on the pbus, so serial-tl and pbus should be on the same node
+  //   NoCParams(
+  //     topology        = UnidirectionalTorus1D(4),
+  //     channelParamGen = (a, b) => UserChannelParams(Seq.fill(10) { UserVirtualChannelParams(4) }),
+  //     routingRelation = NonblockingVirtualSubnetworksRouting(UnidirectionalTorus1DDatelineRouting(), 5, 2))
+  // )) ++
+  // new freechips.rocketchip.subsystem.WithNBigCores(2) ++
+  // new freechips.rocketchip.subsystem.WithNBanks(1) ++
+  // new chipyard.config.AbstractConfig
+)
+
+class ConstellationTestConfigBoom extends Config(
+ new WithDefaultMMIOOnlyFireSimBridges ++
+ new WithFireSimConfigTweaks ++
+  new constellation.soc.WithSbusNoC(constellation.protocol.TLNoCParams(
+    constellation.protocol.DiplomaticNetworkNodeMapping(
+      inNodeMapping = ListMap(
+        "Core 0" -> 0,
+        "Core 1" -> 1,
+        "serial-tl" -> 3),
+      outNodeMapping = ListMap(
+        "system[0]" -> 2,
+        "pbus" -> 3)), // TSI is on the pbus, so serial-tl and pbus should be on the same node
+    NoCParams(
+      topology        = UnidirectionalTorus1D(4),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(10) { UserVirtualChannelParams(4) }),
+      routingRelation = NonblockingVirtualSubnetworksRouting(UnidirectionalTorus1DDatelineRouting(), 5, 2))
+  )) ++ 
+  new boom.common.WithNSmallBooms(2) ++
+  // new freechips.rocketchip.subsystem.WithNBigCores(1) ++
+  new freechips.rocketchip.subsystem.WithNBanks(1) ++
+  new chipyard.config.AbstractConfig
+)
+// class ConstellationTestConfig extends Config(
+//   new WithDefaultMMIOOnlyFireSimBridges ++
+//   new WithDefaultMemModel ++
+//   new WithFireSimConfigTweaks ++
+//   new constellation.soc.WithSbusNoC(constellation.protocol.TLNoCParams(
+//     constellation.protocol.DiplomaticNetworkNodeMapping(
+//       inNodeMapping = ListMap(
+//         "Core 0" -> 0,
+//         "Core 1" -> 1,
+//         "Core 2" -> 2,
+//         "Core 3" -> 6,
+//         "Core 4" -> 7,
+//         "Core 5" -> 8,
+//         "serial-tl" -> 4),
+//       outNodeMapping = ListMap(
+//         "system[0]" -> 3,
+//         "system[1]" -> 5,
+//         "pbus" -> 4)), // TSI is on the pbus, so serial-tl and pbus should be on the same node
+//     NoCParams(
+//       topology        = Mesh2D(3, 3),
+//       channelParamGen = (a, b) => UserChannelParams(Seq.fill(10) { UserVirtualChannelParams(4) }),
+//       routingRelation = NonblockingVirtualSubnetworksRouting(Mesh2DDimensionOrderedRouting(), 5, 2))
+//   )) ++
+//   new freechips.rocketchip.subsystem.WithNSmallCores(6) ++
+//   new freechips.rocketchip.subsystem.WithNBanks(2) ++
+//   new chipyard.config.AbstractConfig
+// )
+//
+
+class MegaBoomFireSimConfig extends Config(
+  new WithDefaultMMIOOnlyFireSimBridges ++
+  new WithDefaultMemModel ++
+  new WithFireSimConfigTweaks ++
+  new boom.common.WithNMegaBooms(1) ++                           // mega boom config
+  new chipyard.config.WithSystemBusWidth(128) ++
+  new chipyard.config.AbstractConfig)
+
+class OctaCoreRocketFireSimConfig extends Config(
+  new WithDefaultMMIOOnlyFireSimBridges ++
+  new WithDefaultMemModel ++
+  new WithFireSimConfigTweaks ++
+  new freechips.rocketchip.subsystem.WithNBigCores(8) ++
+  new chipyard.config.AbstractConfig
+  )
