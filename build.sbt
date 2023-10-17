@@ -295,8 +295,10 @@ lazy val fpga_platforms = (project in file("./fpga"))
 
 lazy val sage = (project in file("generators/sage"))
   .settings(
-    libraryDependencies += "edu.berkeley.cs" %% "chiseltest" % "0.6.2" % "test"
+    // libraryDependencies += "edu.berkeley.cs" %% "chiseltest" % "1.6.2" % "test" // Post 1.9.1
+    libraryDependencies += "edu.berkeley.cs" %% "chiseltest" % "0.5.5" // 1.9.0
   )
   .settings(commonSettings)
-  .dependsOn(rocketchip, constellation, boom, cde)
+  .dependsOn(rocketchip, constellation, boom)
+//  .dependsOn(cde) // Post 1.9.1
   .settings(libraryDependencies ++= rocketLibDeps.value)
