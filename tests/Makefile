@@ -7,7 +7,7 @@ include libgloss.mk
 
 PROGRAMS = pwm blkdev accum charcount nic-loopback big-blkdev pingd \
            streaming-passthrough streaming-fir nvdla spiflashread spiflashwrite fft gcd \
-           hello sage_msg
+           hello sage_msg sage_queue
 
 spiflash.img: spiflash.py
 	python3 $<
