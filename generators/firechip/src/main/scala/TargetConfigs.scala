@@ -17,6 +17,8 @@ import testchipip.{BlockDeviceKey, BlockDeviceConfig, TracePortKey, TracePortPar
 import sifive.blocks.devices.uart.{PeripheryUARTKey, UARTParams}
 import scala.math.{min, max}
 
+import sage._
+
 import chipyard.clocking.{ChipyardPRCIControlKey}
 import icenet._
 
@@ -306,3 +308,23 @@ class FireSimLeanGemminiRocketMMIOOnlyConfig extends Config(
   new WithDefaultMemModel ++
   new WithFireSimConfigTweaks ++
   new chipyard.LeanGemminiRocketConfig)
+
+// BXE FireSim Dual-Core Rocket
+class FireSimDualRocketMMIOOnlyConfig extends Config(
+  new WithDefaultMMIOOnlyFireSimBridges ++
+  new WithDefaultMemModel ++
+  new WithFireSimConfigTweaks ++
+  new freechips.rocketchip.subsystem.WithNBigCores(2) ++
+  new chipyard.config.AbstractConfig)
+
+class FireSimAndSageTestConfig extends Config(
+  new WithDefaultMMIOOnlyFireSimBridges ++
+  new WithFireSimConfigTweaks ++
+  new chipyard.SageNoCConfig // Just add the "default" SAGE config for now
+)
+
+class FireSimAndRoNTestConfig extends Config(
+  new WithDefaultMMIOOnlyFireSimBridges ++
+  new WithFireSimConfigTweaks ++
+  new chipyard.RoCCOverNoCConfig
+)
