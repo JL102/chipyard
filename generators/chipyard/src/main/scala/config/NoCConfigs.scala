@@ -269,3 +269,20 @@ class SageNoCConfig extends Config(
   new chipyard.config.AbstractConfig
 )
 
+class RoCCOverNoCConfig extends Config(
+  new chipyard.example.WithRoNNoC(chipyard.example.RoNNoCProtocolParams(
+    hartMappings = ListMap( // naively map hartIds to the same nodeId
+      0 -> 0,
+      1 -> 1,
+      2 -> 2,
+      3 -> 3),
+    nocParams = NoCParams(
+      topology = Mesh2D(2, 4),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
+      routingRelation = Mesh2DDimensionOrderedRouting()
+    )
+  )) ++
+  new chipyard.example.WithRoCCToNoC ++
+  new freechips.rocketchip.subsystem.WithNBigCores(4) ++
+  new chipyard.config.AbstractConfig
+)
