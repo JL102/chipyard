@@ -264,7 +264,7 @@ class SageNoCConfig extends Config(
       routingRelation = Mesh2DDimensionOrderedRouting()
     )
   )) ++
-  new sage.WithSAGE(32, OpcodeSet.custom0) ++
+  new sage.WithSAGE(queueLength = 5, opcodes = OpcodeSet.custom0, qWaitTimeout = 10, enableHartIdCommand = true) ++
   new freechips.rocketchip.subsystem.WithNBigCores(4) ++
   new chipyard.config.AbstractConfig
 )
