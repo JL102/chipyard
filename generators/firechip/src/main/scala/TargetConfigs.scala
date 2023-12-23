@@ -25,6 +25,14 @@ import icenet._
 import firesim.bridges._
 import firesim.configs._
 
+import constellation.channel._
+import constellation.routing._
+import constellation.topology._
+import constellation.noc._
+import constellation.soc.{GlobalNoCParams}
+
+import scala.collection.immutable.ListMap
+
 class WithBootROM extends Config((site, here, up) => {
   case BootROMLocated(x) => {
     val chipyardBootROM = new File(s"./generators/testchipip/bootrom/bootrom.rv${site(XLen)}.img")
@@ -323,8 +331,112 @@ class FireSimAndSageTestConfig extends Config(
   new chipyard.SageNoCConfig // Just add the "default" SAGE config for now
 )
 
+// This is just to test how the HW resource utilization changes with & without Sage
+class FireSimFourCoreRocketConfig extends Config(
+  new WithDefaultMMIOOnlyFireSimBridges ++
+  new WithFireSimConfigTweaks ++
+  new freechips.rocketchip.subsystem.WithNBigCores(4) ++
+  new chipyard.config.AbstractConfig
+)
+
+class FireSimAndSageBoomConfig extends Config(
+  new WithDefaultMMIOOnlyFireSimBridges ++
+  new WithFireSimConfigTweaks ++
+  new sage.WithSAGENoC(sage.SAGENoCProtocolParams(
+    hartMappings = ListMap( // naively map hartIds to the same nodeId
+      0 -> 0,
+      1 -> 1,
+      2 -> 2,
+      3 -> 3),
+    nocParams = NoCParams(
+      topology = Mesh2D(2, 2),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(3) { UserVirtualChannelParams(2) }), // 3 VCs/channel, 2 buffer slots/VC
+      routingRelation = Mesh2DDimensionOrderedRouting()
+    )
+  )) ++
+  new sage.WithSAGE(32, OpcodeSet.custom0, 10, true) ++
+  new freechips.rocketchip.subsystem.WithNBigCores(2) ++
+  new boom.common.WithNSmallBooms(2) ++
+  new chipyard.config.AbstractConfig
+  )
+
 class FireSimAndRoNTestConfig extends Config(
   new WithDefaultMMIOOnlyFireSimBridges ++
   new WithFireSimConfigTweaks ++
   new chipyard.RoCCOverNoCConfig
 )
+
+// Based on MultiNoCConfig but with half the cores, banks, and memory channels
+class ConstellationTestConfig extends Config(
+  new WithDefaultMMIOOnlyFireSimBridges ++
+  new WithFireSimConfigTweaks ++
+  new constellation.soc.WithCbusNoC(constellation.protocol.TLNoCParams(
+    constellation.protocol.DiplomaticNetworkNodeMapping(
+      inNodeMapping = ListMap(
+        "serial-tl" -> 0),
+      outNodeMapping = ListMap(
+        "error" -> 1, "l2[0]" -> 2, "pbus" -> 3, "plic" -> 4,
+        "clint" -> 5, "dmInner" -> 6, "bootrom" -> 7, "tileClockGater" -> 8, "tileResetSetter" -> 9)),
+    NoCParams(
+      topology = TerminalRouter(BidirectionalLine(10)),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(5) { UserVirtualChannelParams(4) }),
+      routingRelation = NonblockingVirtualSubnetworksRouting(TerminalRouterRouting(BidirectionalLineRouting()), 5, 1))
+  )) ++
+  new constellation.soc.WithMbusNoC(constellation.protocol.TLNoCParams(
+    constellation.protocol.DiplomaticNetworkNodeMapping(
+      inNodeMapping = ListMap(
+        "L2 InclusiveCache[0]" -> 1, "L2 InclusiveCache[1]" -> 2),
+      outNodeMapping = ListMap(
+        "system[0]" -> 0, "system[1]" -> 3, 
+        "serdesser" -> 0)),
+    NoCParams(
+      topology        = TerminalRouter(BidirectionalTorus1D(8)),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(10) { UserVirtualChannelParams(4) }),
+      routingRelation = BlockingVirtualSubnetworksRouting(TerminalRouterRouting(BidirectionalTorus1DShortestRouting()), 5, 2))
+  )) ++
+  new constellation.soc.WithSbusNoC(constellation.protocol.TLNoCParams(
+    constellation.protocol.DiplomaticNetworkNodeMapping(
+      inNodeMapping = ListMap(
+        "Core 0" -> 1, "Core 1" -> 2,  "Core 2" -> 4 , "Core 3" -> 7,
+        "serial-tl" -> 0),
+      outNodeMapping = ListMap(
+        "system[0]" -> 5, "system[1]" -> 6, 
+        "pbus" -> 3)),
+    NoCParams(
+      topology        = TerminalRouter(Mesh2D(4, 2)),
+      channelParamGen = (a, b) => UserChannelParams(Seq.fill(8) { UserVirtualChannelParams(4) }),
+      routingRelation = BlockingVirtualSubnetworksRouting(TerminalRouterRouting(Mesh2DEscapeRouting()), 5, 1))
+  )) ++
+  new freechips.rocketchip.subsystem.WithNBigCores(4) ++
+  new freechips.rocketchip.subsystem.WithNBanks(2) ++
+  new freechips.rocketchip.subsystem.WithNMemoryChannels(2) ++
+  new chipyard.config.AbstractConfig
+)
+
+// class ConstellationTestConfig extends Config(
+//   new WithDefaultMMIOOnlyFireSimBridges ++
+//   new WithDefaultMemModel ++
+//   new WithFireSimConfigTweaks ++
+//   new constellation.soc.WithSbusNoC(constellation.protocol.TLNoCParams(
+//     constellation.protocol.DiplomaticNetworkNodeMapping(
+//       inNodeMapping = ListMap(
+//         "Core 0" -> 0,
+//         "Core 1" -> 1,
+//         "Core 2" -> 2,
+//         "Core 3" -> 6,
+//         "Core 4" -> 7,
+//         "Core 5" -> 8,
+//         "serial-tl" -> 4),
+//       outNodeMapping = ListMap(
+//         "system[0]" -> 3,
+//         "system[1]" -> 5,
+//         "pbus" -> 4)), // TSI is on the pbus, so serial-tl and pbus should be on the same node
+//     NoCParams(
+//       topology        = Mesh2D(3, 3),
+//       channelParamGen = (a, b) => UserChannelParams(Seq.fill(10) { UserVirtualChannelParams(4) }),
+//       routingRelation = NonblockingVirtualSubnetworksRouting(Mesh2DDimensionOrderedRouting(), 5, 2))
+//   )) ++
+//   new freechips.rocketchip.subsystem.WithNSmallCores(6) ++
+//   new freechips.rocketchip.subsystem.WithNBanks(2) ++
+//   new chipyard.config.AbstractConfig
+// )
